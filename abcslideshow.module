@@ -69,6 +69,8 @@ function abcslideshow_block_content(){
 
     if ($active_js_name && module_exists('libraries')) {
         $active_js_path = libraries_get_path($active_js_name);
+        drupal_add_js(array('abcslideshowActive' =>  $active_js_name), 'setting'); // Drupal.settings.abcslideshowActive
+
         _get_active_js_data($active_js_name, $active_slideshow_data);
 
         foreach ($active_slideshow_data['css'] as $css_file){
@@ -86,7 +88,7 @@ function abcslideshow_block_content(){
         );
 
         // pass to the preprocess theme function
-        return theme($active_slideshow_data['abcslideshow_template'], array('showonpage' => $showonpage));
+        return theme($active_slideshow_data['slideshow_template'], array('showonpage' => $showonpage));
     }
 }
 
@@ -127,11 +129,10 @@ function abcslideshow_settings($form, &$form_state) {
 
     // List of supported slideshows
     $form['abcslideshow_active'] = array(
-        '#title' => t('Active library'),
+        '#title' => t('Active Library'),
         '#type' => 'radios',
-        '#default_value' => variable_get('abcslideshow_active', 'slidesjs'),
+        '#default_value' => variable_get('abcslideshow_active', 'nivo'),
         '#options' => array(
-            'default' => t('Default by Drupal'),
             'slidesjs' => t('SlidesJS'),
             'nivo' => t('Nivo'),
         ),
@@ -140,7 +141,7 @@ function abcslideshow_settings($form, &$form_state) {
 
     // Images lists.
     $form['abcslideshow_images_list'] = array(
-        '#title' => t('Image paths'),
+        '#title' => t('Image Paths'),
         '#type' => 'textarea',
         '#default_value' => $slideshow_images_list,
 
@@ -152,12 +153,13 @@ function abcslideshow_settings($form, &$form_state) {
 	 $form['abcslideshow_js_script'] = array(
         '#title' => t('JavaScript'),
         '#type' => 'textarea',
-        '#default_value' => variable_get('js_script', ''),
+        '#default_value' => variable_get('abcslideshow_js_script', ''),
 
         '#description' => t('JavaScript to run. '),
     );
     return system_settings_form($form);
 }
+
 
 /**
  * Call-back to validate images list
@@ -195,15 +197,6 @@ function _get_images_list(&$slideshow_images_list) {
 function _get_active_js_data($active_js_name, &$active_slideshow){
 
     switch($active_js_name){
-        case 'slidesjs':
-            $active_slideshow = array(
-                'css' => array(
-                    'examples/standard/css/example.css' // ?
-                ),
-                'js' => array('source/jquery.slides.js'),
-                'slideshow_template' => 'view_slidesjs_slideshow_template',
-            );
-            break;
         case 'nivo':
             $active_slideshow = array(
                 'css' => array(
@@ -217,6 +210,17 @@ function _get_active_js_data($active_js_name, &$active_slideshow){
                 'slideshow_template' => 'view_nivo_slideshow_template',
             );
             break;
+
+        case 'slidesjs':
+            $active_slideshow = array(
+                'css' => array(
+                    'examples/standard/css/example.css' // ?
+                ),
+                'js' => array('source/jquery.slides.js'),
+                'slideshow_template' => 'view_slidesjs_slideshow_template',
+            );
+            break;
+
         default:
             $active_slideshow = array(
                 'css' => array(),

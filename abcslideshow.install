@@ -8,22 +8,63 @@
 
 /**
  * Implements hook_install().
+ * Install variables with default (demo) values
  */
   function abcslideshow_install() {
-    //
+      variable_set('abcslideshow_active', 'slidesjs');
+      variable_set('abcslideshow_images_list', '');
+      variable_set('abcslideshow_js_script', _get_js_example());
   }
 
 
 /** Implements hook_uninstall().
  *
  */
+function abcslideshow_uninstall() {
 
-  function abcslideshow_uninstall() {
+// Delete variables
+  variable_del('abcslideshow_active');
+  variable_del('abcslideshow_images_list');
+  variable_del('abcslideshow_js_script');
+}
 
-    // Delete variables
-      variable_del('abcslideshow_active');
-      variable_del('abcslideshow_images_list');
-      variable_del('abcslideshow_js_script');
-  }
+/**
+ * Helper to set default JS for demo
+ */
+function _get_js_example(){
+    return <<<JSE
+var $ = jQuery.noConflict();
 
+$(document).ready(function() {
+    var abcName = Drupal.settings.abcslideshowActive;
+    switch(abcName){
 
+      case 'nivo':
+        $('#nivo-slides').nivoSlider({
+            effect: 'boxRainGrowReverse',  // Specify sets like: 'fold,fade,sliceDown'
+            animSpeed: 500,                 // Slide transition speed
+            pauseTime: 5000                // How long each slide will show
+        });
+        break;
+
+      case 'slidesjs':
+        $('#slidesjs-slides').slidesjs({
+            width: 940,
+            height: 528,
+            play: {
+                active: true,
+                auto: true,
+                interval: 4000,
+                swap: true,
+                pauseOnHover: true,
+                restartDelay: 2500
+            }
+        });
+        break;
+
+      default:
+         alert('Wrong slideshow name!');
+
+});
+JSE;
+}

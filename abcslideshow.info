@@ -8,5 +8,6 @@ version = 7.x-1.0
 
 dependencies[] = block
 dependencies[] = libraries (2.x)
+dependencies[] = jquery_update
 
 configure = admin/structure/abcslideshow

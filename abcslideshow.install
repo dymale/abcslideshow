@@ -9,7 +9,7 @@
 /**
  * Implements hook_install().
  */
-  function hpotemp_install() {
+  function abcslideshow_install() {
     //
   }
 
@@ -18,15 +18,12 @@
  *
  */
 
-  function hpotemp_uninstall() {
+  function abcslideshow_uninstall() {
 
     // Delete variables
-      variable_del('active_slideshow');
-      variable_del('slideshow_images_list');
-      variable_del('active_slideshow');
-      variable_del('active_slideshow');
-      variable_del('active_slideshow');
-      variable_del('active_slideshow');
+      variable_del('abcslideshow_active');
+      variable_del('abcslideshow_images_list');
+      variable_del('abcslideshow_js_script');
   }
 
 

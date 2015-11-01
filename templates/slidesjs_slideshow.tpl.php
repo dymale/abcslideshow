@@ -12,9 +12,11 @@
 
                 <div class="slider-wrapper theme-default">
                     <div id="slidesjs-slides" class="">
+                        <?php if($showonpage['images']){ ?>
                         <?php foreach ($showonpage['images'] as $key => $img): ?>
-                            <img src="/myd7/sites/default/files/<?php print $img; ?>" data-thumb="/myd7/sites/default/files/<?php print $img; ?>" alt="0<?php print $key; ?>" />
+                            <img src="<?php print $img; ?>" data-thumb="/myd7/sites/default/files/<?php print $img; ?>" alt="0<?php print $key; ?>" />
                         <?php endforeach; ?>
+                        <?php } ?>
                     </div>
 
                 </div>

@@ -1,0 +1,12 @@
+
+name = ABC-Slideshow
+description = Local Slideshow - implementation of the wrapper for JS slideshow libraries
+package = Other
+core = 7.x
+php = 5.2
+version = 7.x-1.0
+
+dependencies[] = block
+dependencies[] = libraries (2.x)
+
+configure = admin/structure/abcslideshow

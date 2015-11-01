@@ -1,0 +1,227 @@
+<?php
+
+
+/**
+* Create simple wrapper for slideshow block based on wanted JS libraries like Nivo, SlidesJS
+*/
+
+
+/**
+* This will allow you to restrict certain actions of the module to certain roles
+*/
+function abcslideshow_permission() {
+    return array(
+        'administer abcslideshow' => array(
+            'title' => t('Administer ABC-Slideshow'),
+            'description' => t('Allows a admins to configure ABC-Slideshow.'),
+        ),
+    );
+}
+
+/**
+* Implements hook_menu
+*/
+function abcslideshow_menu()
+{
+	$items = array ();
+	$items['admin/structure/abcslideshow'] = array (
+		'title' => t('Slideshow settings'),
+		'description' => t('Setting for Slideshow'),
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('abcslideshow_settings'),
+		'access arguments' => array('administer abcslideshow'),
+		'type' => MENU_NORMAL_ITEM,
+	);
+
+	return $items;
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function abcslideshow_block_info() {
+    $blocks['abcslideshow'] = array(
+        'info' => t('ABC-Slideshow block'),
+        'cache' => DRUPAL_NO_CACHE,
+    );
+
+    return $blocks;
+}
+/**
+ * Implements hook_block_view().
+ */
+function abcslideshow_block_view($delta = '') {
+    switch ($delta) {
+        case 'abcslideshow':
+            $block['content'] = abcslideshow_block_content();
+            break;
+    }
+    return $block;
+}
+
+
+/**
+ * Actual block content
+ */
+function abcslideshow_block_content(){
+    $active_slideshow_data = array();
+    $active_js_name = variable_get('abcslideshow_active', FALSE);
+
+    if ($active_js_name && module_exists('libraries')) {
+        $active_js_path = libraries_get_path($active_js_name);
+        _get_active_js_data($active_js_name, $active_slideshow_data);
+
+        foreach ($active_slideshow_data['css'] as $css_file){
+            drupal_add_css($active_js_path . '/' . $css_file);
+        }
+
+        foreach ($active_slideshow_data['js'] as $js_file){
+            drupal_add_js($active_js_path . '/' . $js_file);
+        }
+        $js_script = variable_get('abcslideshow_js_script', '');
+        drupal_add_js($js_script, array('type' => 'inline', 'scope' => 'header', 'weight' => 123));
+
+        $showonpage = array(
+            'images' => $slideshow_images_list = variable_get('abcslideshow_images_list', '')
+        );
+
+        // pass to the preprocess theme function
+        return theme($active_slideshow_data['abcslideshow_template'], array('showonpage' => $showonpage));
+    }
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function abcslideshow_theme() {
+
+    $path = drupal_get_path('module', 'abcslideshow');
+
+    return array(
+        'view_slidesjs_slideshow_template' => array(
+            'path'      => $path . '/templates',
+            'template'  => 'slidesjs_slideshow',
+            'variables' => array('showonpage' => array()),
+        ),
+        'view_nivo_slideshow_template' => array(
+            'path'      => $path . '/templates',
+            'template'  => 'nivo_slideshow',
+            'variables' => array('showonpage' => array()),
+        ),
+    );
+}
+
+
+/**
+* Settings at the admin menu
+*/
+function abcslideshow_settings($form, &$form_state) {
+    $slideshow_images_list = array();
+    _get_images_list($slideshow_images_list);
+
+    // General settings.
+    $form['general'] = array(
+        '#type' => 'fieldset',
+        '#title' => 'General settings',
+    );
+
+    // List of supported slideshows
+    $form['abcslideshow_active'] = array(
+        '#title' => t('Active library'),
+        '#type' => 'radios',
+        '#default_value' => variable_get('abcslideshow_active', 'slidesjs'),
+        '#options' => array(
+            'default' => t('Default by Drupal'),
+            'slidesjs' => t('SlidesJS'),
+            'nivo' => t('Nivo'),
+        ),
+        '#description' => t('List of supported libraries'),
+    );
+
+    // Images lists.
+    $form['abcslideshow_images_list'] = array(
+        '#title' => t('Image paths'),
+        '#type' => 'textarea',
+        '#default_value' => $slideshow_images_list,
+
+        '#description' => t('Enter full paths to images, type one path per line.'),
+        '#element_validate' => array('_check_images_list'),
+    );
+
+     // custom JS settings
+	 $form['abcslideshow_js_script'] = array(
+        '#title' => t('JavaScript'),
+        '#type' => 'textarea',
+        '#default_value' => variable_get('js_script', ''),
+
+        '#description' => t('JavaScript to run. '),
+    );
+    return system_settings_form($form);
+}
+
+/**
+ * Call-back to validate images list
+ * @param $element
+ * @param $form_state - ref array - current form data
+ */
+function _check_images_list($element, &$form_state) {
+    $shimages = explode("\n", $form_state['values']['abcslideshow_images_list']);
+
+    // Array cleanup
+    $shimages = array_map('trim', $shimages);
+    $shimages = array_filter($shimages, 'strlen');
+    $shimages = array_unique($shimages);
+
+    $form_state['values']['abcslideshow_images_list'] = $shimages;
+}
+
+/**
+ * Helper to read images list location
+ * @param $slideshow_images_list - ref array - path to images
+ */
+function _get_images_list(&$slideshow_images_list) {
+    $slideshow_images_list = variable_get('abcslideshow_images_list', NULL);
+
+    if (is_array($slideshow_images_list)) {
+        $slideshow_images_list = join("\n", $slideshow_images_list);
+    }
+}
+
+/**
+ * Helper to read current CSS/JS/template locations
+ * @param $active_js_name - string - active JS name in use
+ * @param $active_slideshow - ref array - data
+ */
+function _get_active_js_data($active_js_name, &$active_slideshow){
+
+    switch($active_js_name){
+        case 'slidesjs':
+            $active_slideshow = array(
+                'css' => array(
+                    'examples/standard/css/example.css' // ?
+                ),
+                'js' => array('source/jquery.slides.js'),
+                'slideshow_template' => 'view_slidesjs_slideshow_template',
+            );
+            break;
+        case 'nivo':
+            $active_slideshow = array(
+                'css' => array(
+                    'themes/default/default.css',
+                    'themes/light/light.css',
+                    'themes/dark/dark.css',
+                    'themes/bar/bar.css',
+                    'nivo-slider.css',
+                ),
+                'js' => array('jquery.nivo.slider.pack.js'),
+                'slideshow_template' => 'view_nivo_slideshow_template',
+            );
+            break;
+        default:
+            $active_slideshow = array(
+                'css' => array(),
+                'js' => array(),
+                'slideshow_template' => '',
+            );
+    }
+}

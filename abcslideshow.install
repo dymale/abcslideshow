@@ -1,0 +1,32 @@
+<?php
+
+/**
+ *  @file
+ *  The install file for the abcslideshow module.
+ */
+
+
+/**
+ * Implements hook_install().
+ */
+  function hpotemp_install() {
+    //
+  }
+
+
+/** Implements hook_uninstall().
+ *
+ */
+
+  function hpotemp_uninstall() {
+
+    // Delete variables
+      variable_del('active_slideshow');
+      variable_del('slideshow_images_list');
+      variable_del('active_slideshow');
+      variable_del('active_slideshow');
+      variable_del('active_slideshow');
+      variable_del('active_slideshow');
+  }
+
+
